@@ -97,10 +97,10 @@ class TestRubype < Minitest::Test
     assert_equal meth.arg_types, [Numeric, Numeric]
     assert_equal meth.return_type, String
 
-    err = assert_raises(Rubype::ReturnTypeError) { meth.(1,2) }
+    assert_raises(Rubype::ReturnTypeError) { meth.(1,2) }
     #assert_equal err.message, %|Expected MyClass#test_mth to return String but got nil instead|
 
-    err = assert_raises(Rubype::ArgumentTypeError) { meth.(1,'2') }
+    assert_raises(Rubype::ArgumentTypeError) { meth.(1,'2') }
     #assert_equal err.message, %|Expected MyClass#test_mth's 2nd argument to be Numeric but got "2" instead|
   end
 
@@ -122,12 +122,96 @@ class TestRubype < Minitest::Test
     assert_raises(NoMethodError){ instance.protected_mth(1,2) }
   end
 
+  def test_keyword_args_are_forwarded
+    klass = Class.new do
+      def call(id:, prefix: '')
+        "#{prefix}#{id}"
+      end
+      typesig :call, [] => String
+    end
+
+    assert_equal 'item-1', klass.new.call(id: 1, prefix: 'item-')
+  end
+
+  def test_keyword_args_still_check_return_type
+    klass = Class.new do
+      def call(id:)
+        id
+      end
+      typesig :call, [] => String
+    end
+
+    assert_raises(Rubype::ReturnTypeError) { klass.new.call(id: 1) }
+  end
+
+  def test_keyword_syntax_for_positional_hash_is_checked
+    klass = Class.new do
+      def call(options)
+        options
+      end
+      typesig :call, [Hash] => Hash
+    end
+
+    assert_equal({ value: 1 }, klass.new.call(value: 1))
+  end
+
+  def test_keyword_syntax_for_positional_hash_can_fail_type_check
+    klass = Class.new do
+      def call(options)
+        options
+      end
+      typesig :call, [Array] => Hash
+    end
+
+    assert_raises(Rubype::ArgumentTypeError) { klass.new.call(value: 1) }
+  end
+
+  def test_block_is_forwarded
+    klass = Class.new do
+      def call(value)
+        yield value
+      end
+      typesig :call, [Numeric] => Numeric
+    end
+
+    assert_equal 4, klass.new.call(2) { |value| value * 2 }
+  end
+
+  def test_type_info_is_scoped_by_owner
+    numeric_klass = Class.new do
+      def call
+        1
+      end
+      typesig :call, [] => Numeric
+    end
+
+    string_klass = Class.new do
+      def call
+        'str'
+      end
+      typesig :call, [] => String
+    end
+
+    assert_equal({ [] => Numeric }, numeric_klass.new.method(:call).type_info)
+    assert_equal({ [] => String }, string_klass.new.method(:call).type_info)
+  end
+
   def test_invalid_typesig
     assert_raises(Rubype::InvalidTypesigError) do
        Class.new.class_eval <<-RUBY_CODE
         def mth(n1, n2)
         end
         typesig :mth, Numeric => NilClass
+      RUBY_CODE
+    end
+  end
+
+  def test_empty_typesig_is_invalid
+    assert_raises(Rubype::InvalidTypesigError) do
+       Class.new.class_eval <<-RUBY_CODE
+        def mth
+        end
+        typesig :mth, {}
       RUBY_CODE
     end
   end

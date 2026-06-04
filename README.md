@@ -1,6 +1,6 @@
 # Ruby + Type = Rubype
 
-[![Gem Version](https://badge.fury.io/rb/rubype.svg)](http://badge.fury.io/rb/rubype) [![Build Status](https://travis-ci.org/gogotanaka/Rubype.svg?branch=develop)](https://travis-ci.org/gogotanaka/Rubype) [![Dependency Status](https://gemnasium.com/gogotanaka/Rubype.svg)](https://gemnasium.com/gogotanaka/Rubype) [![Code Climate](https://codeclimate.com/github/gogotanaka/Rubype/badges/gpa.svg)](https://codeclimate.com/github/gogotanaka/Rubype)
+[![Gem Version](https://badge.fury.io/rb/rubype.svg)](https://badge.fury.io/rb/rubype) [![Ruby](https://github.com/gkqha/Rubype/actions/workflows/ruby.yml/badge.svg?branch=develop)](https://github.com/gkqha/Rubype/actions/workflows/ruby.yml)
 
 ![210414.png](https://qiita-image-store.s3.amazonaws.com/0/30440/0aafba03-1a4c-4676-5377-75f906aaeab9.png)
 ```rb
@@ -207,7 +207,8 @@ gem install rubype or add gem 'rubype' to your Gemfile.
 
 And `require 'rubype'`, enjoy typed Ruby.
 
-This gem requires Ruby 2.0.0+.
+This fork supports Ruby 3.1.x, 3.2.x, 3.3.x, 3.4.x, and 4.0.x.
+Ruby 2.x and 3.0.x are not supported.
 
 ### Contributing
 
@@ -217,26 +218,23 @@ This gem requires Ruby 2.0.0+.
 
 #### How to develop
 
-Now Rubype is written with 100% Ruby.
-In terms of performance, only core module(https://github.com/gogotanaka/Rubype/blob/develop/lib/rubype.rb#L4-L80) will be translate to C.
-
-Only two API will be translate to C, it means you don't need to know what C dose!
+Rubype uses Ruby for the public API and a small C extension for contract checks.
 
 1. Fork it ( https://github.com/gogotanaka/Rubype/fork )
 
 2. Create your feature branch (`git checkout -b my-new-feature`)
 
-    $ bundle install --path vendor/bundle
+    $ bundle install
 
 3. Commit your changes (`git commit -am 'Add some feature'`)
 
 4. Run tests
 
-    $ bundle exec rake test
+    $ bundle exec rake compile_and_test
 
     ......
 
-5. Run benchmerk(optional)
+5. Run benchmark(optional)
 
     $ bundle exec rake bm
 

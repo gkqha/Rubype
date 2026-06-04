@@ -6,7 +6,8 @@ static ID id_to_s, id_meth, id_owner, id_arg_types, id_rtn_type, id_private_meth
 #define error_fmt "\nfor %"PRIsVALUE"\nExpected: %"PRIsVALUE"\nActual:   %"PRIsVALUE""
 #define unmatch_type_p(obj, type_info) !(match_type_p(obj, type_info))
 
-int match_type_p(VALUE obj, VALUE type_info)
+static int
+match_type_p(VALUE obj, VALUE type_info)
 {
   switch (TYPE(type_info)) {
     case T_SYMBOL: return rb_respond_to(obj, rb_to_id(type_info));
@@ -21,7 +22,8 @@ int match_type_p(VALUE obj, VALUE type_info)
   }
 }
 
-VALUE expected_mes(VALUE expected)
+static VALUE
+expected_mes(VALUE expected)
 {
   switch (TYPE(expected)) {
     case T_SYMBOL: return rb_sprintf("respond to #%"PRIsVALUE, expected);
@@ -36,15 +38,15 @@ VALUE expected_mes(VALUE expected)
   }
 }
 
-#define assing_ivars VALUE meth_caller, meth, target;\
+#define assign_ivars VALUE meth_caller, meth, target;\
                      meth_caller = rb_ivar_get(self, id_owner);\
                      meth        = rb_ivar_get(self, id_meth);
 
 static VALUE
 rb_rubype_assert_args_type(VALUE self, VALUE args)
 {
-  assing_ivars
-  int i;
+  assign_ivars
+  long i;
   VALUE arg, arg_type;
   VALUE arg_types = rb_ivar_get(self, id_arg_types);
 
@@ -53,7 +55,7 @@ rb_rubype_assert_args_type(VALUE self, VALUE args)
     arg_type = rb_ary_entry(arg_types, i);
 
     if (unmatch_type_p(arg, arg_type)){
-      target = rb_sprintf("%"PRIsVALUE"#%"PRIsVALUE"'s %d argument", meth_caller, meth, i+1);
+      target = rb_sprintf("%"PRIsVALUE"#%"PRIsVALUE"'s %ld argument", meth_caller, meth, i+1);
       rb_raise(rb_eRubypeArgumentTypeError, error_fmt, target, expected_mes(arg_type), arg);
     }
   }
@@ -63,7 +65,7 @@ rb_rubype_assert_args_type(VALUE self, VALUE args)
 static VALUE
 rb_rubype_assert_rtn_type(VALUE self, VALUE rtn)
 {
-  assing_ivars
+  assign_ivars
   VALUE rtn_type = rb_ivar_get(self, id_rtn_type);
 
   if (unmatch_type_p(rtn, rtn_type)){
